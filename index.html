@@ -1,293 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DevHub Pro</title>
     <style>
-        :root {
-            --bg: #0d0d0d;
-            --green: #00ff41;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--green);
-            font-family: monospace;
-            margin: 0;
-            padding-bottom: 80px;
-        }
-
-        .page {
-            display: none;
-            padding: 15px;
-        }
-
-        .active {
-            display: block;
-        }
-
-        .card {
-            border: 1px solid var(--green);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            background: #111;
-            border-top: 1px solid var(--green);
-            z-index: 100;
-        }
-
-        nav button {
-            flex: 1;
-            padding: 15px;
-            background: none;
-            border: none;
-            color: var(--green);
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            z-index: 200;
-        }
-
-        input,
-        textarea,
-        button {
-            width: 100%;
-            padding: 12px;
-            margin: 5px 0;
-            background: #1a1a1a;
-            border: 1px solid var(--green);
-            color: var(--green);
-            box-sizing: border-box;
-            font-family: monospace;
-        }
-
-        button {
-            background: var(--green);
-            color: black;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-        }
-
-        #searchBar {
-            border: 2px solid var(--green);
-            margin-bottom: 15px;
-            color: white;
-        }
+        :root { --bg: #0d0d0d; --green: #00ff41; }
+        body { background: var(--bg); color: var(--green); font-family: monospace; margin: 0; padding-bottom: 80px; }
+        .page { display: none; padding: 15px; } .active { display: block; }
+        .card { border: 1px solid var(--green); padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; }
+        nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #111; border-top: 1px solid var(--green); z-index: 100; }
+        nav button { flex: 1; padding: 15px; background: none; border: none; color: var(--green); font-weight: bold; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; padding: 20px; box-sizing: border-box; overflow-y: auto; z-index: 200; }
+        input, textarea, button { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid var(--green); color: var(--green); box-sizing: border-box; font-family: monospace; }
+        button { background: var(--green); color: black; font-weight: bold; border: none; cursor: pointer; }
+        #searchBar { border: 2px solid var(--green); margin-bottom: 15px; color: white; }
     </style>
 </head>
-
 <body>
 
-    <div id="homePage" class="page active">
-        <h3>Live Snippets</h3>
-        <input type="text" id="searchBar" placeholder="Search snippets..." onkeyup="filterSnippets()">
-        <div id="snippetList">Loading snippets...</div>
+<div id="homePage" class="page active">
+    <h3>Live Snippets</h3>
+    <input type="text" id="searchBar" placeholder="Search snippets..." onkeyup="filterSnippets()">
+    <div id="snippetList">Loading...</div>
+</div>
+
+<div id="profilePage" class="page">
+    <div id="authBox">
+        <h3>Login / Register</h3>
+        <input id="userName" placeholder="Name">
+        <input id="userEmail" placeholder="Email">
+        <input id="userLevel" placeholder="Coding Level">
+        <input id="userPass" type="password" placeholder="Password">
+        <button onclick="handleAuth()">LOGIN / REGISTER</button>
     </div>
-
-    <div id="profilePage" class="page">
-        <div id="authBox">
-            <h3>Login / Register</h3>
-            <input id="userName" placeholder="Name">
-            <input id="userEmail" placeholder="Email">
-            <input id="userLevel" placeholder="Coding Level">
-            <button onclick="handleAuth()">LOGIN / REGISTER</button>
-        </div>
-        <div id="idCard" class="card" style="display:none;">
-            <h3>USER ID CARD</h3>
-            <p id="cName"></p>
-            <p id="cEmail"></p>
-            <p id="cLevel"></p>
-            <div><span id="cShared">Shared: 0</span></div>
-        </div>
-        <button id="shareBtn" style="display:none;" onclick="openModal('shareModal')">SHARE NEW SNIPPET</button>
+    <div id="idCard" class="card" style="display:none;">
+        <h3>USER ID CARD</h3>
+        <p id="cName"></p>
+        <p id="cEmail"></p>
+        <p id="cLevel"></p>
+        <div><span id="cShared">Shared: 0</span></div>
     </div>
+    <button id="shareBtn" style="display:none;" onclick="openModal('shareModal')">SHARE NEW SNIPPET</button>
+</div>
 
-    <div id="shareModal" class="modal">
-        <h3>New Snippet</h3>
-        <input id="sName" placeholder="Snippet Name">
-        <input id="sType" placeholder="Work Type">
-        <textarea id="sCode" rows="5" placeholder="Code here..."></textarea>
-        <textarea id="sComment" placeholder="Initial comment..."></textarea>
-        <button onclick="postSnippet()">SUBMIT</button>
-        <button onclick="closeModal('shareModal')">CLOSE</button>
-    </div>
+<div id="shareModal" class="modal">
+    <h3>New Snippet</h3>
+    <input id="sName" placeholder="Snippet Name">
+    <input id="sType" placeholder="Work Type">
+    <textarea id="sCode" rows="5" placeholder="Paste your code here..."></textarea>
+    <textarea id="sComment" placeholder="Initial comment..."></textarea>
+    <button onclick="postSnippet()">SUBMIT</button>
+    <button onclick="closeModal('shareModal')">CLOSE</button>
+</div>
 
-    <div id="viewModal" class="modal">
-        <h3 id="vName"></h3>
-        <pre id="vCode" style="background:#000; padding:10px; border:1px solid #333; overflow:auto;"></pre>
-        <div id="vCommentsList"></div>
-        <div id="commentSection"></div>
-        <button onclick="closeModal('viewModal')">CLOSE</button>
-    </div>
+<div id="viewModal" class="modal">
+    <h3 id="vName"></h3>
+    <pre id="vCode" style="background:#000; padding:10px; border:1px solid #333; overflow:auto;"></pre>
+    <div id="vCommentsList"></div>
+    <div id="commentSection"></div>
+    <button onclick="closeModal('viewModal')">CLOSE</button>
+</div>
 
-    <nav>
-        <button onclick="showPage('homePage')">HOME</button>
-        <button onclick="showPage('profilePage')">PROFILE</button>
-    </nav>
+<nav>
+    <button onclick="showPage('homePage')">HOME</button>
+    <button onclick="showPage('profilePage')">PROFILE</button>
+</nav>
 
-    <script>
-        const BASE_URL = "https://slace-4d2ae-default-rtdb.asia-southeast1.firebasedatabase.app";
-        let allSnippets = [];
+<script>
+    const BASE_URL = "https://slace-4d2ae-default-rtdb.asia-southeast1.firebasedatabase.app";
+    let allSnippets = [];
 
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-        }
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(function(p) {
+            p.style.display = 'none';
+        });
+        document.getElementById(id).style.display = 'block';
+    }
 
-        function openModal(id) {
-            document.getElementById(id).style.display = 'block';
-        }
+    function openModal(id) {
+        document.getElementById(id).style.display = 'block';
+    }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
 
-        async function handleAuth() {
-            const name = document.getElementById('userName').value;
-            const res = await fetch(`${BASE_URL}/users.json`);
-            const users = await res.json();
-            let userObj = {
-                name,
-                email: document.getElementById('userEmail').value,
-                level: document.getElementById('userLevel').value
-            };
+    async function handleAuth() {
+        const name = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+        const level = document.getElementById('userLevel').value;
+        const pass = document.getElementById('userPass').value;
 
-            let exists = false;
-            for (let id in users)
-                if (users[id].name === name) {
-                    userObj = users[id];
-                    exists = true;
+        const response = await fetch(BASE_URL + "/users.json");
+        const users = await response.json();
+        
+        let userObject = {
+            name: name,
+            email: email,
+            level: level,
+            pass: pass
+        };
+        
+        let userFound = false;
+        for (let key in users) {
+            if (users[key].name === name) {
+                if (users[key].pass === pass) {
+                    userObject = users[key];
+                    userFound = true;
+                } else {
+                    alert("Galat password bhai!");
+                    return;
                 }
-            if (!exists) await fetch(`${BASE_URL}/users.json`, {
-                method: 'POST',
-                body: JSON.stringify(userObj)
-            });
-
-            localStorage.setItem('currentUser', JSON.stringify(userObj));
-            location.reload();
-        }
-
-        async function fetchSnippets() {
-            const res = await fetch(`${BASE_URL}/snippets.json`);
-            const data = await res.json();
-            allSnippets = [];
-            const list = document.getElementById('snippetList');
-            list.innerHTML = '';
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            let shared = 0;
-
-            for (let id in data) {
-                let s = data[id];
-                s.id = id;
-                allSnippets.push(s);
-                if (user && s.owner === user.name) shared++;
-
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `<strong>${s.name}</strong><br><small>Type: ${s.workType || 'N/A'} | Watched: ${s.watched || 0}</small>`;
-                div.onclick = () => showViewModal(s);
-                list.appendChild(div);
             }
-            if (user) document.getElementById('cShared').innerText = "Shared: " + shared;
         }
-
-        function showViewModal(s) {
-            updateWatched(s.id, s);
-            document.getElementById('vName').innerText = s.name;
-            document.getElementById('vCode').innerText = s.code;
-            let cHtml = "<strong>Comments:</strong><br>";
-            if (s.comments)
-                for (let id in s.comments) cHtml += `<p style="font-size:0.8em;">- ${s.comments[id].user}: ${s.comments[id].text}</p>`;
-            document.getElementById('vCommentsList').innerHTML = cHtml;
-            document.getElementById('commentSection').innerHTML = `<textarea id="newComment" placeholder="Comment..."></textarea><button onclick="addComment('${s.id}')">POST</button>`;
-            openModal('viewModal');
-        }
-
-        async function updateWatched(key, s) {
-            await fetch(`${BASE_URL}/snippets/${key}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({
-                    watched: (s.watched || 0) + 1
-                })
-            });
-        }
-
-        async function addComment(id) {
-            const text = document.getElementById('newComment').value;
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            await fetch(`${BASE_URL}/snippets/${id}/comments.json`, {
+        
+        if (userFound === false) {
+            await fetch(BASE_URL + "/users.json", {
                 method: 'POST',
-                body: JSON.stringify({
-                    user: user ? user.name : "Anonymous",
-                    text
-                })
-            });
-            closeModal('viewModal');
-            fetchSnippets();
-        }
-
-        async function postSnippet() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            await fetch(`${BASE_URL}/snippets.json`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    name: document.getElementById('sName').value,
-                    workType: document.getElementById('sType').value,
-                    code: document.getElementById('sCode').value,
-                    owner: user ? user.name : "Anonymous",
-                    watched: 0
-                })
-            });
-            closeModal('shareModal');
-            fetchSnippets();
-        }
-
-        function filterSnippets() {
-            const query = document.getElementById('searchBar').value.toLowerCase();
-            document.getElementById('snippetList').innerHTML = '';
-            allSnippets.filter(s => s.name.toLowerCase().includes(query)).forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `<strong>${s.name}</strong>`;
-                div.onclick = () => showViewModal(s);
-                document.getElementById('snippetList').appendChild(div);
+                body: JSON.stringify(userObject)
             });
         }
+        
+        localStorage.setItem('currentUser', JSON.stringify(userObject));
+        location.reload();
+    }
 
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        if (user) {
-            document.getElementById('authBox').style.display = 'none';
-            document.getElementById('idCard').style.display = 'block';
-            document.getElementById('shareBtn').style.display = 'block';
-            document.getElementById('cName').innerText = "Name: " + user.name;
-            document.getElementById('cEmail').innerText = "Email: " + user.email;
-            document.getElementById('cLevel').innerText = "Level: " + user.level;
+    async function fetchSnippets() {
+        const response = await fetch(BASE_URL + "/snippets.json");
+        const data = await response.json();
+        allSnippets = [];
+        
+        const listElement = document.getElementById('snippetList');
+        listElement.innerHTML = '';
+        
+        const loggedUser = JSON.parse(localStorage.getItem('currentUser'));
+        let sharedCount = 0;
+
+        for (let id in data) {
+            let snippet = data[id];
+            snippet.id = id;
+            allSnippets.push(snippet);
+            
+            if (loggedUser && snippet.owner === loggedUser.name) {
+                sharedCount = sharedCount + 1;
+            }
+            
+            const divElement = document.createElement('div');
+            divElement.className = 'card';
+            divElement.innerHTML = '<strong>' + snippet.name + '</strong><br><small>Type: ' + (snippet.workType || 'N/A') + ' | Watched: ' + (snippet.watched || 0) + '</small>';
+            
+            divElement.onclick = function() {
+                updateWatched(snippet.id, snippet);
+                document.getElementById('vName').innerText = snippet.name;
+                document.getElementById('vCode').innerText = snippet.code;
+                
+                let commentsHtml = "<strong>Comments:</strong><br>";
+                if (snippet.comments) {
+                    for (let cId in snippet.comments) {
+                        commentsHtml = commentsHtml + '<p style="font-size:0.8em;">- ' + snippet.comments[cId].user + ': ' + snippet.comments[cId].text + '</p>';
+                    }
+                }
+                document.getElementById('vCommentsList').innerHTML = commentsHtml;
+                document.getElementById('commentSection').innerHTML = '<textarea id="newComment" placeholder="Apna comment..."></textarea><button onclick="addComment(\'' + snippet.id + '\')">POST COMMENT</button>';
+                
+                openModal('viewModal');
+            };
+            
+            listElement.appendChild(divElement);
         }
+        
+        if (loggedUser) {
+            document.getElementById('cShared').innerText = "Shared: " + sharedCount;
+        }
+    }
+
+    async function updateWatched(snippetId, snippet) {
+        let currentWatched = snippet.watched || 0;
+        await fetch(BASE_URL + "/snippets/" + snippetId + ".json", {
+            method: 'PATCH',
+            body: JSON.stringify({ watched: currentWatched + 1 })
+        });
+    }
+
+    async function addComment(id) {
+        const commentText = document.getElementById('newComment').value;
+        const loggedUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        await fetch(BASE_URL + "/snippets/" + id + "/comments.json", {
+            method: 'POST',
+            body: JSON.stringify({
+                user: loggedUser ? loggedUser.name : "Anonymous",
+                text: commentText
+            })
+        });
+        closeModal('viewModal');
         fetchSnippets();
-    </script>
-</body>
+    }
 
+    async function postSnippet() {
+        const loggedUser = JSON.parse(localStorage.getItem('currentUser'));
+        await fetch(BASE_URL + "/snippets.json", {
+            method: 'POST',
+            body: JSON.stringify({
+                name: document.getElementById('sName').value,
+                workType: document.getElementById('sType').value,
+                code: document.getElementById('sCode').value,
+                comment: document.getElementById('sComment').value,
+                owner: loggedUser ? loggedUser.name : "Anonymous",
+                watched: 0
+            })
+        });
+        closeModal('shareModal');
+        fetchSnippets();
+    }
+
+    function filterSnippets() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        const listElement = document.getElementById('snippetList');
+        listElement.innerHTML = '';
+        
+        allSnippets.forEach(function(snippet) {
+            if (snippet.name.toLowerCase().includes(query)) {
+                const divElement = document.createElement('div');
+                divElement.className = 'card';
+                divElement.innerHTML = '<strong>' + snippet.name + '</strong>';
+                divElement.onclick = function() {
+                    openModal('viewModal');
+                    // Logic to load specific snippet...
+                };
+                listElement.appendChild(divElement);
+            }
+        });
+    }
+
+    // Initialization
+    const savedUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (savedUser) {
+        document.getElementById('authBox').style.display = 'none';
+        document.getElementById('idCard').style.display = 'block';
+        document.getElementById('shareBtn').style.display = 'block';
+        document.getElementById('cName').innerText = "Name: " + savedUser.name;
+        document.getElementById('cEmail').innerText = "Email: " + savedUser.email;
+        document.getElementById('cLevel').innerText = "Level: " + savedUser.level;
+    }
+    fetchSnippets();
+</script>
+</body>
 </html>
