@@ -94,7 +94,7 @@
         for (let key in users) {
             if (users[key].name === name) {
                 if (users[key].pass === pass) { userObject = users[key]; userFound = true; }
-                else { alert("Galat password!"); return; }
+                else { alert("sorry but you entering wrong password we dont approve you !"); return; }
             }
         }
         if (!userFound) await fetch(BASE_URL + "/users.json", { method: 'POST', body: JSON.stringify(userObject) });
