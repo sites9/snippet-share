@@ -40,6 +40,7 @@
         <p id="cEmail"></p>
         <p id="cLevel"></p>
         <div><span id="cShared">Shared: 0</span></div>
+        <button style="background: #ff4141; color: white; margin-top: 10px;" onclick="logout()">LOG OUT</button>
     </div>
     <button id="shareBtn" style="display:none;" onclick="openModal('shareModal')">SHARE NEW SNIPPET</button>
 </div>
@@ -71,56 +72,32 @@
     const BASE_URL = "https://slace-4d2ae-default-rtdb.asia-southeast1.firebasedatabase.app";
     let allSnippets = [];
 
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(function(p) {
-            p.style.display = 'none';
-        });
-        document.getElementById(id).style.display = 'block';
-    }
+    function showPage(id) { document.querySelectorAll('.page').forEach(function(p) { p.style.display = 'none'; }); document.getElementById(id).style.display = 'block'; }
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function openModal(id) {
-        document.getElementById(id).style.display = 'block';
-    }
-
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
+    // Logout Function
+    function logout() {
+        localStorage.removeItem('currentUser');
+        location.reload();
     }
 
     async function handleAuth() {
         const name = document.getElementById('userName').value;
-        const email = document.getElementById('userEmail').value;
-        const level = document.getElementById('userLevel').value;
         const pass = document.getElementById('userPass').value;
-
         const response = await fetch(BASE_URL + "/users.json");
         const users = await response.json();
         
-        let userObject = {
-            name: name,
-            email: email,
-            level: level,
-            pass: pass
-        };
-        
+        let userObject = { name: name, email: document.getElementById('userEmail').value, level: document.getElementById('userLevel').value, pass: pass };
         let userFound = false;
+        
         for (let key in users) {
             if (users[key].name === name) {
-                if (users[key].pass === pass) {
-                    userObject = users[key];
-                    userFound = true;
-                } else {
-                    alert("Galat password bhai!");
-                    return;
-                }
+                if (users[key].pass === pass) { userObject = users[key]; userFound = true; }
+                else { alert("Galat password!"); return; }
             }
         }
-        
-        if (userFound === false) {
-            await fetch(BASE_URL + "/users.json", {
-                method: 'POST',
-                body: JSON.stringify(userObject)
-            });
-        }
+        if (!userFound) await fetch(BASE_URL + "/users.json", { method: 'POST', body: JSON.stringify(userObject) });
         
         localStorage.setItem('currentUser', JSON.stringify(userObject));
         location.reload();
@@ -130,10 +107,8 @@
         const response = await fetch(BASE_URL + "/snippets.json");
         const data = await response.json();
         allSnippets = [];
-        
         const listElement = document.getElementById('snippetList');
         listElement.innerHTML = '';
-        
         const loggedUser = JSON.parse(localStorage.getItem('currentUser'));
         let sharedCount = 0;
 
@@ -141,100 +116,57 @@
             let snippet = data[id];
             snippet.id = id;
             allSnippets.push(snippet);
-            
-            if (loggedUser && snippet.owner === loggedUser.name) {
-                sharedCount = sharedCount + 1;
-            }
+            if (loggedUser && snippet.owner === loggedUser.name) sharedCount++;
             
             const divElement = document.createElement('div');
             divElement.className = 'card';
             divElement.innerHTML = '<strong>' + snippet.name + '</strong><br><small>Type: ' + (snippet.workType || 'N/A') + ' | Watched: ' + (snippet.watched || 0) + '</small>';
-            
             divElement.onclick = function() {
                 updateWatched(snippet.id, snippet);
                 document.getElementById('vName').innerText = snippet.name;
                 document.getElementById('vCode').innerText = snippet.code;
-                
                 let commentsHtml = "<strong>Comments:</strong><br>";
                 if (snippet.comments) {
-                    for (let cId in snippet.comments) {
-                        commentsHtml = commentsHtml + '<p style="font-size:0.8em;">- ' + snippet.comments[cId].user + ': ' + snippet.comments[cId].text + '</p>';
-                    }
+                    for (let cId in snippet.comments) commentsHtml += '<p style="font-size:0.8em;">- ' + snippet.comments[cId].user + ': ' + snippet.comments[cId].text + '</p>';
                 }
                 document.getElementById('vCommentsList').innerHTML = commentsHtml;
                 document.getElementById('commentSection').innerHTML = '<textarea id="newComment" placeholder="Apna comment..."></textarea><button onclick="addComment(\'' + snippet.id + '\')">POST COMMENT</button>';
-                
                 openModal('viewModal');
             };
-            
             listElement.appendChild(divElement);
         }
-        
-        if (loggedUser) {
-            document.getElementById('cShared').innerText = "Shared: " + sharedCount;
-        }
+        if (loggedUser) document.getElementById('cShared').innerText = "Shared: " + sharedCount;
     }
 
     async function updateWatched(snippetId, snippet) {
-        let currentWatched = snippet.watched || 0;
-        await fetch(BASE_URL + "/snippets/" + snippetId + ".json", {
-            method: 'PATCH',
-            body: JSON.stringify({ watched: currentWatched + 1 })
-        });
+        await fetch(BASE_URL + "/snippets/" + snippetId + ".json", { method: 'PATCH', body: JSON.stringify({ watched: (snippet.watched || 0) + 1 }) });
     }
 
     async function addComment(id) {
         const commentText = document.getElementById('newComment').value;
         const loggedUser = JSON.parse(localStorage.getItem('currentUser'));
-        
-        await fetch(BASE_URL + "/snippets/" + id + "/comments.json", {
-            method: 'POST',
-            body: JSON.stringify({
-                user: loggedUser ? loggedUser.name : "Anonymous",
-                text: commentText
-            })
-        });
-        closeModal('viewModal');
-        fetchSnippets();
+        await fetch(BASE_URL + "/snippets/" + id + "/comments.json", { method: 'POST', body: JSON.stringify({ user: loggedUser ? loggedUser.name : "Anonymous", text: commentText }) });
+        closeModal('viewModal'); fetchSnippets();
     }
 
     async function postSnippet() {
         const loggedUser = JSON.parse(localStorage.getItem('currentUser'));
-        await fetch(BASE_URL + "/snippets.json", {
-            method: 'POST',
-            body: JSON.stringify({
-                name: document.getElementById('sName').value,
-                workType: document.getElementById('sType').value,
-                code: document.getElementById('sCode').value,
-                comment: document.getElementById('sComment').value,
-                owner: loggedUser ? loggedUser.name : "Anonymous",
-                watched: 0
-            })
-        });
-        closeModal('shareModal');
-        fetchSnippets();
+        await fetch(BASE_URL + "/snippets.json", { method: 'POST', body: JSON.stringify({ name: document.getElementById('sName').value, workType: document.getElementById('sType').value, code: document.getElementById('sCode').value, owner: loggedUser ? loggedUser.name : "Anonymous", watched: 0 }) });
+        closeModal('shareModal'); fetchSnippets();
     }
 
     function filterSnippets() {
         const query = document.getElementById('searchBar').value.toLowerCase();
-        const listElement = document.getElementById('snippetList');
-        listElement.innerHTML = '';
-        
-        allSnippets.forEach(function(snippet) {
-            if (snippet.name.toLowerCase().includes(query)) {
-                const divElement = document.createElement('div');
-                divElement.className = 'card';
-                divElement.innerHTML = '<strong>' + snippet.name + '</strong>';
-                divElement.onclick = function() {
-                    openModal('viewModal');
-                    // Logic to load specific snippet...
-                };
-                listElement.appendChild(divElement);
+        document.getElementById('snippetList').innerHTML = '';
+        allSnippets.forEach(function(s) {
+            if (s.name.toLowerCase().includes(query)) {
+                const div = document.createElement('div'); div.className = 'card'; div.innerHTML = '<strong>' + s.name + '</strong>';
+                div.onclick = function() { openModal('viewModal'); };
+                document.getElementById('snippetList').appendChild(div);
             }
         });
     }
 
-    // Initialization
     const savedUser = JSON.parse(localStorage.getItem('currentUser'));
     if (savedUser) {
         document.getElementById('authBox').style.display = 'none';
